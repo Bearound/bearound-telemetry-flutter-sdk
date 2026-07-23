@@ -1,0 +1,56 @@
+group = "io.bearound.telemetry.bearound_telemetry_flutter_sdk"
+version = "0.1.0"
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.11.1")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    namespace = "io.bearound.telemetry.bearound_telemetry_flutter_sdk"
+
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_11
+    }
+
+    sourceSets {
+        main.java.srcDirs += "src/main/kotlin"
+    }
+
+    defaultConfig {
+        minSdk = 26
+    }
+}
+
+dependencies {
+    // Published native Bearound Telemetry SDK — beacon-hardware telemetry with no
+    // location permission. The tracking SDK is NOT a dependency: the companion
+    // handoff is resolved reflectively at runtime when it is present in the app.
+    api 'com.github.Bearound:bearound-telemetry-android-sdk:v0.2.0'
+
+    implementation 'androidx.core:core-ktx:1.16.0'
+}
