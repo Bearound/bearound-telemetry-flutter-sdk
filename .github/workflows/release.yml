@@ -124,6 +124,12 @@ jobs:
         env:
           PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
+          # Fail fast when the secret is absent: with no credentials file, pub
+          # silently waits for an interactive OAuth flow until the job times out.
+          if [ -z "$PUB_CREDENTIALS" ]; then
+            echo "::error::PUB_CREDENTIALS secret is missing on this repository. Copy it from bearound-flutter-sdk (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
           mkdir -p "$HOME/.config/dart"
           printf '%s' "$PUB_CREDENTIALS" > "$HOME/.config/dart/pub-credentials.json"
           flutter pub publish --force
