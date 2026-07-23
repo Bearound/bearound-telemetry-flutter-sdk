@@ -78,6 +78,10 @@ class _RootScreenState extends State<RootScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _sub = BearoundTelemetry.beaconsStream.listen((list) {
       setState(() {
+        // MIRROR the SDK's list: expired beacons are already removed from the
+        // emission (including an empty list) — upsert-only kept ghosts around.
+        final currentKeys = list.map((b) => '${b.major}/${b.minor}').toSet();
+        _beacons.removeWhere((key, _) => !currentKeys.contains(key));
         for (final b in list) {
           final key = '${b.major}/${b.minor}';
           _beacons[key] = b;

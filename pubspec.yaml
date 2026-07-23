@@ -1,6 +1,6 @@
 name: bearound_telemetry_flutter_sdk
 description: "Bearound Telemetry SDK for Flutter — beacon-hardware telemetry (battery, temperature, movement, firmware, signal) with no location permission. Android only. Does not track people."
-version: 0.1.0
+version: 0.2.0
 homepage:
 
 environment:
