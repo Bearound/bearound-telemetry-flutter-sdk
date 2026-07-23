@@ -30,10 +30,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            // The sample exercises the SDK, not the shrinker: R8 stripped
+            // WorkManager's Room database (runtime crash) and flagged Tink's
+            // javax.annotation refs. Apps that DO minify: see the README
+            // (-dontwarn javax.annotation.**).
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
