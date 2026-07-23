@@ -22,7 +22,7 @@ When both are installed, `configure()` performs an automatic **companion handoff
 
 ```yaml
 dependencies:
-  bearound_telemetry_flutter_sdk: ^0.1.0
+  bearound_telemetry_flutter_sdk: ^0.2.0
 ```
 
 The Android native SDK is resolved from JitPack. Add JitPack to your app's `android/build.gradle(.kts)` repositories if not present:

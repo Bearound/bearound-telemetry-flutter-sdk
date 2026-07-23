@@ -580,7 +580,7 @@ class _LogPageState extends State<_LogPage> {
                   ? ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: minuteGroups.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, i) {
                         final g = minuteGroups[i];
                         return Padding(
@@ -632,7 +632,7 @@ class _LogPageState extends State<_LogPage> {
                   : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, i) {
                         final e = filtered[i];
                         final t = e.timestamp;

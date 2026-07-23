@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 0.2.0)'
+        required: true
+        type: string
+
+jobs:
+  pre_release_validation:
+    name: Pre-Release Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get version
+        id: get_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Validate native Android pin exists on JitPack
+        run: |
+          set -euo pipefail
+          NATIVE_VERSION=$(grep -oE "com\.github\.Bearound:bearound-telemetry-android-sdk:[0-9A-Za-z.\-]+" android/build.gradle | head -1 | sed -E 's/.*bearound-telemetry-android-sdk://')
+          if [ -z "$NATIVE_VERSION" ]; then
+            echo "❌ Could not find bearound-telemetry-android-sdk pin in android/build.gradle"
+            exit 1
+          fi
+          POM_URL="https://jitpack.io/com/github/Bearound/bearound-telemetry-android-sdk/${NATIVE_VERSION}/bearound-telemetry-android-sdk-${NATIVE_VERSION}.pom"
+          echo "Validating native pin ${NATIVE_VERSION} → ${POM_URL}"
+          # JitPack builds on-demand: the first request can 404 while it builds.
+          # Retry with backoff so we don't publish a Flutter package whose Android
+          # dependency does not resolve for consumers (pub.dev is immutable).
+          ATTEMPTS=5
+          SLEEP=30
+          for i in $(seq 1 "$ATTEMPTS"); do
+            if curl -sf -o /dev/null "$POM_URL"; then
+              echo "✅ JitPack POM available for bearound-telemetry-android-sdk:${NATIVE_VERSION}"
+              exit 0
+            fi
+            echo "Attempt $i/$ATTEMPTS: POM not available yet (JitPack may be building). Waiting ${SLEEP}s…"
+            sleep "$SLEEP"
+          done
+          echo "❌ bearound-telemetry-android-sdk:${NATIVE_VERSION} POM not found on JitPack after ${ATTEMPTS} attempts."
+          exit 1
+
+      - name: Run all tests
+        run: flutter test
+
+      - name: Run analysis
+        run: flutter analyze --fatal-infos
+
+      - name: Validate pub.dev readiness
+        run: flutter pub publish --dry-run
+
+      - name: Verify pubspec version matches release
+        run: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          PUBSPEC_VERSION=$(grep -E '^version:' pubspec.yaml | head -1 | sed -E 's/version:[[:space:]]*//')
+          echo "tag=$VERSION pubspec=$PUBSPEC_VERSION"
+          if [ "$VERSION" != "$PUBSPEC_VERSION" ]; then echo "❌ pubspec ($PUBSPEC_VERSION) != release ($VERSION)"; exit 1; fi
+          echo "✅ pubspec version matches"
+
+      - name: Verify changelog
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "❌ CHANGELOG.md not found"
+            exit 1
+          fi
+          if ! grep -q "^## ${{ steps.get_version.outputs.version }}" CHANGELOG.md; then
+            echo "❌ Version ${{ steps.get_version.outputs.version }} not found in CHANGELOG.md"
+            exit 1
+          fi
+          echo "✅ CHANGELOG.md is up to date"
+
+  publish_to_pubdev:
+    name: Publish to pub.dev
+    runs-on: ubuntu-latest
+    needs: [pre_release_validation]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.5'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Publish to pub.dev
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+        run: |
+          mkdir -p "$HOME/.config/dart"
+          printf '%s' "$PUB_CREDENTIALS" > "$HOME/.config/dart/pub-credentials.json"
+          flutter pub publish --force
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.pre_release_validation.outputs.version }}
+          name: v${{ needs.pre_release_validation.outputs.version }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
