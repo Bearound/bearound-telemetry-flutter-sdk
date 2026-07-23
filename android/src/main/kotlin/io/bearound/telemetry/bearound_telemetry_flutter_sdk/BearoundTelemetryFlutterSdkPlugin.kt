@@ -88,13 +88,20 @@ class BearoundTelemetryFlutterSdkPlugin :
         when (call.method) {
             "configure" -> {
                 val token = call.argument<String>("businessToken") ?: ""
+                val precision = io.bearound.telemetry.models.ScanPrecision.fromName(
+                    call.argument<String>("scanPrecision") ?: "medium"
+                )
                 sdk.listener = listener
                 val tracking = trackingSdkInstanceOrNull()
                 if (tracking != null) {
                     // Companion: credentials + deviceId handoff from the tracking instance.
-                    sdk.configure(tracking)
+                    sdk.configure(tracking, scanPrecision = precision, technology = "flutter-telemetry")
                 } else {
-                    sdk.configure(businessToken = token)
+                    sdk.configure(
+                        businessToken = token,
+                        scanPrecision = precision,
+                        technology = "flutter-telemetry",
+                    )
                 }
                 result.success(tracking != null)
             }

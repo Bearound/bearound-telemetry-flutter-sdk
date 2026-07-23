@@ -80,10 +80,17 @@ class BearoundTelemetry {
   /// and the device id were taken from its instance (both SDKs report as the
   /// same device) and [businessToken] was not needed. Returns `false` on a
   /// standalone configure using [businessToken].
-  static Future<bool> configure({required String businessToken}) async =>
+  ///
+  /// [scanPrecision] (`'high'`, `'medium'`, `'low'`) controls the background
+  /// radio duty and sync cadence — foreground scanning is always LOW_LATENCY
+  /// regardless. Defaults to `'medium'`.
+  static Future<bool> configure({
+    required String businessToken,
+    String scanPrecision = 'medium',
+  }) async =>
       await _channel.invokeMethod<bool>(
         'configure',
-        {'businessToken': businessToken},
+        {'businessToken': businessToken, 'scanPrecision': scanPrecision},
       ) ??
       false;
 

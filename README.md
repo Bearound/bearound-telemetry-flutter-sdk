@@ -50,6 +50,8 @@ await BearoundTelemetry.requestPermissions(); // "Nearby devices" on Android 12+
 
 // If the Bearound tracking SDK is installed and configured, the token is
 // taken from it automatically (companion handoff) — returns true.
+// Optional scanPrecision 'high' | 'medium' | 'low' (default 'medium') — prices the
+// BACKGROUND radio duty and sync cadence; foreground is always LOW_LATENCY.
 final companion = await BearoundTelemetry.configure(businessToken: 'YOUR_BUSINESS_TOKEN');
 
 await BearoundTelemetry.startScanning();
@@ -70,7 +72,7 @@ await BearoundTelemetry.stopScanning();
 
 | Member | Returns | Notes |
 |---|---|---|
-| `configure(businessToken:)` | `Future<bool>` | `true` = companion handoff happened |
+| `configure(businessToken:, scanPrecision:)` | `Future<bool>` | `true` = companion handoff happened; precision `'high'`/`'medium'`/`'low'` prices background duty (foreground always LOW_LATENCY) |
 | `requestPermissions()` | `Future<void>` | `BLUETOOTH_SCAN` on Android 12+, never location |
 | `startScanning()` | `Future<void>` | Foreground + background collection |
 | `stopScanning()` | `Future<void>` | |
