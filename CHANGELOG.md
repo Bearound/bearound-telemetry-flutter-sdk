@@ -12,7 +12,7 @@
 * `configure`, `requestPermissions`, `startScanning`, `stopScanning`, `deviceId`, `beaconsStream`.
 * Example app with a live telemetry dashboard (Android only).
 
-## [0.2.1] - 2026-07-25
+## 0.2.1
 
 ### Changed
 
