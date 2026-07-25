@@ -11,3 +11,10 @@
 * Automatic companion handoff when the Bearound tracking SDK is present in the same app (shared business token and device id).
 * `configure`, `requestPermissions`, `startScanning`, `stopScanning`, `deviceId`, `beaconsStream`.
 * Example app with a live telemetry dashboard (Android only).
+
+## [0.2.1] - 2026-07-25
+
+### Changed
+
+- Native `bearound-telemetry-android-sdk` bumped to v0.2.1 — controller fossil-replay guard (MediaTek ghost beacon), zombie synced-card release, periodic scan watchdog.
+
