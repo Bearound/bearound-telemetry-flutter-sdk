@@ -35,7 +35,7 @@ allprojects {
 }
 ```
 
-Requires `minSdk 26`. If your release build uses R8/minify, add the usual Tink rule to your `proguard-rules.pro`:
+Requires `minSdk 24`. If your release build uses R8/minify, add the usual Tink rule to your `proguard-rules.pro`:
 
 ```
 -dontwarn javax.annotation.**
