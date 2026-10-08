@@ -139,16 +139,8 @@ class BearoundTelemetryFlutterSdkPlugin :
      * compile-time dependency on the tracking SDK (the two artifacts stay independent).
      * Returns null when the tracking SDK is absent or not configured yet.
      */
-    private fun trackingSdkInstanceOrNull(): Any? = try {
-        val cls = Class.forName("io.bearound.sdk.BeAroundSDK")
-        val instance = cls.getMethod("getInstance", Context::class.java).invoke(null, context)
-        val token = runCatching {
-            cls.getMethod("getBusinessToken").invoke(instance) as? String
-        }.getOrNull()
-        if (token.isNullOrBlank()) null else instance
-    } catch (_: Throwable) {
-        null
-    }
+    private fun trackingSdkInstanceOrNull(): Any? =
+        TrackingSdkDiscovery.configuredInstanceOrNull(context, Context::class.java)
 
     // ActivityAware — needed only for the runtime-permission helper.
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
